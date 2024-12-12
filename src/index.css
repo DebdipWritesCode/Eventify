@@ -56,6 +56,34 @@
     --chart-5: 340 75% 55%
   }
 }
+
+.day {
+  width: calc(100% / 7);
+  font-size: clamp(1rem, 0.8cqi, 1.3rem);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.month-days span {
+  width: calc(100% / 7);
+  font-size: clamp(1.2rem, 1cqi, 1.6rem);
+  aspect-ratio: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  text-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+}
+
+.current-day {
+  background-color: #ef9011;
+  border-radius: 50%;
+  box-shadow: 0 0 1.5rem 1rem rgba(239, 144, 17, 0.3);
+}
+
 @layer base {
   * {
     @apply border-border;
