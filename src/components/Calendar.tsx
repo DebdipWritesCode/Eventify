@@ -1,11 +1,31 @@
 import { Button } from "@/components/ui/button";
 import { ChevronRight, ChevronLeft } from "lucide-react";
+import { useState } from "react";
 import AddEvent from "./AddEvent";
 import EventBox from "./EventBox";
 
 const Calendar = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleModalToggle = () => {
+    setIsModalOpen(!isModalOpen);
+  };
+
   return (
-    <div className=" bg-slate-700 px-6 py-4 border-8 border-black rounded-xl shadow-2xl shadow-black flex gap-8 min-w-[90vmin] aspect-[3/2]">
+    <div className=" bg-slate-700 px-6 py-4 border-8 border-black rounded-xl shadow-2xl shadow-black flex gap-8 min-w-[90vmin] aspect-[3/2] relative">
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="modal-content bg-white p-6 rounded-lg shadow-lg animate-slideIn relative">
+            <button
+              onClick={handleModalToggle}
+              className="absolute top-2 right-2 text-gray-600 hover:text-gray-800">
+              ✖
+            </button>
+            <AddEvent />
+          </div>
+        </div>
+      )}
+
       <div className="">
         <h1 className=" text-5xl font-bold text-white font-mono">EVENTIFY</h1>
         <div className=" mt-3">
@@ -67,21 +87,26 @@ const Calendar = () => {
           </div>
         </div>
       </div>
-      <div className=" w-[60%] h-full py-12">
-        <EventBox
-          title="Potato"
-          description="fjhw"
-          startTimestamp="05:45"
-          endTimestamp="08:63"
-          date="24 Oct 2024"
-        />
-        <EventBox
-          title="Potato"
-          description="fjhw"
-          startTimestamp="05:45"
-          endTimestamp="08:63"
-          date="24 Oct 2024"
-        />
+      <div className="w-[60%] flex flex-col gap-3">
+        <div className=" h-full py-12 pr-8 overflow-y-auto">
+          <EventBox
+            title="Potato"
+            description="fjhw"
+            startTimestamp="05:45"
+            endTimestamp="08:63"
+            date="24 Oct 2024"
+          />
+          <EventBox
+            title="Potato"
+            description="fjhw"
+            startTimestamp="05:45"
+            endTimestamp="08:63"
+            date="24 Oct 2024"
+          />
+        </div>
+        <div className="flex justify-end mr-8 mb-3">
+          <Button onClick={handleModalToggle}>Add Event</Button>
+        </div>
       </div>
     </div>
   );
