@@ -53,11 +53,40 @@ const formSchema = z
     const startMinutes = timeToMinutes(data.startTimestamp);
     const endMinutes = timeToMinutes(data.endTimestamp);
 
+    // Ensure start time is earlier than end time
     if (startMinutes >= endMinutes) {
       ctx.addIssue({
         code: "custom",
         path: ["startTimestamp"],
         message: "Start time must be earlier than end time",
+      });
+    }
+
+    const existingEvents = JSON.parse(localStorage.getItem("events") || "[]");
+
+    const isOverlapping = existingEvents.some((event: any) => {
+      const eventDate = new Date(event.date).toISOString().split("T")[0];
+      const formDate = data.date.toISOString().split("T")[0];
+
+      if (eventDate === formDate) {
+        const eventStart = timeToMinutes(event.startTimestamp);
+        const eventEnd = timeToMinutes(event.endTimestamp);
+
+        // Overlap logic: check if time intervals intersect
+        return (
+          (startMinutes < eventEnd && endMinutes > eventStart) || // new event overlaps an existing event
+          (startMinutes >= eventStart && startMinutes < eventEnd)
+        );
+      }
+
+      return false;
+    });
+
+    if (isOverlapping) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["startTimestamp"],
+        message: "Event times overlap with an existing event",
       });
     }
   });
@@ -67,7 +96,10 @@ interface AddEventProps {
   setIsModalOpen: (isOpen: boolean) => void;
 }
 
-const AddEvent: React.FC<AddEventProps> = ({ selectedDate, setIsModalOpen }) => {
+const AddEvent: React.FC<AddEventProps> = ({
+  selectedDate,
+  setIsModalOpen,
+}) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -88,7 +120,7 @@ const AddEvent: React.FC<AddEventProps> = ({ selectedDate, setIsModalOpen }) => 
       endTimestamp: data.endTimestamp,
       description: data.description,
       date: data.date.toISOString(),
-    }
+    };
 
     const existingEvents = JSON.parse(localStorage.getItem("events") || "[]");
     const updatedEvents = [...existingEvents, newEvent];
@@ -101,8 +133,8 @@ const AddEvent: React.FC<AddEventProps> = ({ selectedDate, setIsModalOpen }) => 
 
   const typeOptions = [
     { value: "personal", label: "Personal", color: "bg-blue-500" },
-    { value: "work", label: "Work", color: "bg-green-500" },
-    { value: "casual", label: "Casual", color: "bg-red-500" },
+    { value: "work", label: "Work", color: "bg-red-500" },
+    { value: "casual", label: "Casual", color: "bg-green-500" },
   ];
 
   return (

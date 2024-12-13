@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ChevronRight, ChevronLeft } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AddEvent from "./AddEvent";
 import EventBox from "./EventBox";
 
@@ -23,10 +23,20 @@ const Calendar = () => {
     "December",
   ];
 
+  interface Event {
+    title: string;
+    type: "personal" | "work" | "casual";
+    description: string;
+    startTimestamp: string;
+    endTimestamp: string;
+    date: string;
+  }
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(currentDate.getMonth());
   const [currentYear, setCurrentYear] = useState(currentDate.getFullYear());
   const [selectedDate, setSelectedDate] = useState(currentDate);
+  const [events, setEvents] = useState<Event[]>([]);
 
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
@@ -52,7 +62,8 @@ const Calendar = () => {
   };
 
   const handleDayClick = (day: number) => {
-    setSelectedDate(new Date(currentYear, currentMonth, day));
+    const newDate = new Date(currentYear, currentMonth, day, 12);
+    setSelectedDate(newDate);
   };
 
   const isAddEventValid = () => {
@@ -72,6 +83,19 @@ const Calendar = () => {
     return false;
   };
 
+  useEffect(() => {
+    const storedEvents = JSON.parse(localStorage.getItem("events") || "[]");
+
+    const filteredEvents = storedEvents.filter((event: any) => {
+      const eventDate = new Date(event.date).toISOString().split("T")[0];
+      const selectedDateStr = selectedDate.toISOString().split("T")[0];
+
+      return eventDate === selectedDateStr;
+    });
+
+    setEvents(filteredEvents);
+  }, [selectedDate]);
+
   return (
     <div className=" bg-slate-700 px-6 py-4 border-8 border-black rounded-xl shadow-2xl shadow-black flex gap-8 min-w-[90vmin] aspect-[3/2] relative">
       {isModalOpen && (
@@ -82,12 +106,15 @@ const Calendar = () => {
               className="absolute top-2 right-2 text-gray-600 hover:text-gray-800">
               ✖
             </button>
-            <AddEvent selectedDate={selectedDate} setIsModalOpen={setIsModalOpen} />
+            <AddEvent
+              selectedDate={selectedDate}
+              setIsModalOpen={setIsModalOpen}
+            />
           </div>
         </div>
       )}
 
-      <div className="w-[600px]">
+      <div className="w-[500px]">
         <h1 className=" text-5xl font-bold text-white font-mono">EVENTIFY</h1>
         <div className=" mt-8">
           <div className="flex justify-between items-center">
@@ -151,32 +178,27 @@ const Calendar = () => {
           </div>
         </div>
       </div>
-      <div className="w-[60%] flex flex-col gap-3">
-        <div className=" h-full py-12 pr-8 overflow-y-auto">
-          <EventBox
-            title="Potato"
-            type="personal"
-            description="fjhw"
-            startTimestamp="05:45"
-            endTimestamp="08:63"
-            date="24 Oct 2024"
-          />
-          <EventBox
-            title="Potato"
-            type="casual"
-            description="fjhw"
-            startTimestamp="05:45"
-            endTimestamp="08:63"
-            date="24 Oct 2024"
-          />
-          <EventBox
-            title="Potato"
-            type="work"
-            description="fjhw"
-            startTimestamp="05:45"
-            endTimestamp="08:63"
-            date="24 Oct 2024"
-          />
+      <div className="w-[400px] flex flex-col gap-3">
+        <div className="h-full py-12 pr-8 overflow-y-auto">
+          {events.length > 0 ? (
+            events.map((event, index) => (
+              <EventBox
+                key={index}
+                title={event.title}
+                type={event.type}
+                description={event.description}
+                startTimestamp={event.startTimestamp}
+                endTimestamp={event.endTimestamp}
+                date={new Date(event.date).toLocaleDateString("en-US", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                })}
+              />
+            ))
+          ) : (
+            <p className="text-gray-400 text-[27.5px] text-center w-full">No events to show</p>
+          )}
         </div>
         <div className="flex justify-end mr-10 mb-3">
           {isAddEventValid() && (
