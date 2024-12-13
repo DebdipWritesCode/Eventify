@@ -84,6 +84,11 @@
   box-shadow: 0 0 1.5rem 1rem rgba(239, 144, 17, 0.3);
 }
 
+.selected-day {
+  border-radius: 9999px;
+  border: 1px dashed #fff;
+}
+
 @keyframes slideIn {
   0% {
     transform: translateY(-20%);

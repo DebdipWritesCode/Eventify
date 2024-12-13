@@ -3,6 +3,7 @@ import { Edit2, Trash2 } from "lucide-react";
 
 interface EventBoxProps {
   title: string;
+  type: "personal" | "work" | "casual";
   startTimestamp: string;
   endTimestamp: string;
   description: string;
@@ -11,6 +12,7 @@ interface EventBoxProps {
 
 const EventBox: React.FC<EventBoxProps> = ({
   title,
+  type,
   startTimestamp,
   endTimestamp,
   description,
@@ -32,9 +34,18 @@ const EventBox: React.FC<EventBoxProps> = ({
     console.log("Delete clicked");
   };
 
+  // Determine classes based on the type
+  const typeClasses = {
+    personal: "bg-blue-500 shadow-blue-800",
+    casual: "bg-green-500 shadow-green-800",
+    work: "bg-red-500 shadow-red-800",
+  };
+
+  const currentTypeClass = typeClasses[type];
+
   return (
     <div
-      className={`w-full bg-blue-500 rounded-lg cursor-pointer mb-4 shadow-md shadow-blue-800 overflow-hidden transition-all ${
+      className={`w-full ${currentTypeClass} rounded-lg cursor-pointer mb-4 shadow-md overflow-hidden transition-all ${
         isExpanded ? "h-auto" : "h-20"
       }`}
       onClick={handleToggle}

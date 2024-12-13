@@ -1,3 +1,4 @@
+import React from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,7 +7,6 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormDescription,
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
@@ -24,6 +24,12 @@ const formSchema = z
         message: "Title must be at most 100 characters long",
       }),
 
+    type: z.enum(["personal", "work", "casual"], {
+      errorMap: () => ({
+        message: "Please select a valid type",
+      }),
+    }),
+
     startTimestamp: z.string().regex(/^([01]?\d|2[0-3]):[0-5]\d$/, {
       message: "Start timestamp must be in HH:MM format (24-hour clock)",
     }),
@@ -35,6 +41,8 @@ const formSchema = z
     description: z.string().max(1000, {
       message: "Description must be at most 1000 characters long",
     }),
+
+    date: z.date(),
   })
   .superRefine((data, ctx) => {
     const timeToMinutes = (time: string) => {
@@ -54,24 +62,52 @@ const formSchema = z
     }
   });
 
-const AddEvent = () => {
+interface AddEventProps {
+  selectedDate: Date;
+  setIsModalOpen: (isOpen: boolean) => void;
+}
+
+const AddEvent: React.FC<AddEventProps> = ({ selectedDate, setIsModalOpen }) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
+      type: "personal",
       startTimestamp: "",
       endTimestamp: "",
       description: "",
+      date: selectedDate,
     },
   });
 
   function onSubmit(data: z.infer<typeof formSchema>) {
-    console.log(data);
+    const newEvent = {
+      title: data.title,
+      type: data.type,
+      startTimestamp: data.startTimestamp,
+      endTimestamp: data.endTimestamp,
+      description: data.description,
+      date: data.date.toISOString(),
+    }
+
+    const existingEvents = JSON.parse(localStorage.getItem("events") || "[]");
+    const updatedEvents = [...existingEvents, newEvent];
+
+    localStorage.setItem("events", JSON.stringify(updatedEvents));
+    setIsModalOpen(false);
+
+    console.log("Event added", newEvent);
   }
+
+  const typeOptions = [
+    { value: "personal", label: "Personal", color: "bg-blue-500" },
+    { value: "work", label: "Work", color: "bg-green-500" },
+    { value: "casual", label: "Casual", color: "bg-red-500" },
+  ];
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
         <FormField
           control={form.control}
           name="title"
@@ -81,9 +117,41 @@ const AddEvent = () => {
               <FormControl>
                 <Input placeholder="Enter title" {...field} />
               </FormControl>
-              <FormDescription>
-                Title must be between 2 and 100 characters long.
-              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Type</FormLabel>
+              <FormControl>
+                <div className="flex gap-4">
+                  {typeOptions.map((option) => (
+                    <label
+                      key={option.value}
+                      className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        value={option.value}
+                        checked={field.value === option.value}
+                        onChange={() => field.onChange(option.value)}
+                        className="hidden"
+                      />
+                      <span
+                        className={`relative w-6 h-6 rounded-full ${option.color} flex items-center justify-center`}>
+                        {field.value === option.value && (
+                          <span className="w-3 h-3 rounded-full bg-white"></span>
+                        )}
+                      </span>
+                      <span>{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -98,9 +166,6 @@ const AddEvent = () => {
               <FormControl>
                 <Input placeholder="HH:MM (e.g., 09:15)" {...field} />
               </FormControl>
-              <FormDescription>
-                Enter the start time in 24-hour format (HH:MM).
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -115,9 +180,6 @@ const AddEvent = () => {
               <FormControl>
                 <Input placeholder="HH:MM (e.g., 22:16)" {...field} />
               </FormControl>
-              <FormDescription>
-                Enter the end time in 24-hour format (HH:MM).
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -138,9 +200,6 @@ const AddEvent = () => {
                   />
                 </FormControl>
               </div>
-              <FormDescription>
-                Description must be at most 1000 characters long.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

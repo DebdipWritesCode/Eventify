@@ -26,6 +26,7 @@ const Calendar = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(currentDate.getMonth());
   const [currentYear, setCurrentYear] = useState(currentDate.getFullYear());
+  const [selectedDate, setSelectedDate] = useState(currentDate);
 
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
@@ -50,17 +51,38 @@ const Calendar = () => {
     });
   };
 
+  const handleDayClick = (day: number) => {
+    setSelectedDate(new Date(currentYear, currentMonth, day));
+  };
+
+  const isAddEventValid = () => {
+    const today = new Date();
+    const selected = new Date(
+      currentYear,
+      currentMonth,
+      selectedDate.getDate()
+    );
+
+    today.setHours(0, 0, 0, 0);
+    selected.setHours(0, 0, 0, 0);
+
+    if (selected >= today) {
+      return true;
+    }
+    return false;
+  };
+
   return (
     <div className=" bg-slate-700 px-6 py-4 border-8 border-black rounded-xl shadow-2xl shadow-black flex gap-8 min-w-[90vmin] aspect-[3/2] relative">
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="modal-content bg-white p-6 rounded-lg shadow-lg animate-slideIn relative">
+          <div className="modal-content w-[400px] bg-white p-6 rounded-lg shadow-lg animate-slideIn relative">
             <button
               onClick={handleModalToggle}
               className="absolute top-2 right-2 text-gray-600 hover:text-gray-800">
               ✖
             </button>
-            <AddEvent />
+            <AddEvent selectedDate={selectedDate} setIsModalOpen={setIsModalOpen} />
           </div>
         </div>
       )}
@@ -90,7 +112,9 @@ const Calendar = () => {
           </div>
           <div className="days flex w-full my-6 text-slate-500">
             {weekdays.map((day) => (
-              <span key={day} className={`day ${day === "Sun" ? "text-red-500" : ""}`}>
+              <span
+                key={day}
+                className={`day ${day === "Sun" ? "text-red-500" : ""}`}>
                 {day}
               </span>
             ))}
@@ -101,17 +125,25 @@ const Calendar = () => {
                 if (index < firstDayOfMonth) {
                   return <span key={index} className="day"></span>;
                 }
+                const day = index - firstDayOfMonth + 1;
+                const isCurrentDay =
+                  currentDate.getDate() === day &&
+                  currentDate.getMonth() === currentMonth &&
+                  currentDate.getFullYear() === currentYear;
+
+                const isSelectedDay =
+                  selectedDate.getDate() === day &&
+                  selectedDate.getMonth() === currentMonth &&
+                  selectedDate.getFullYear() === currentYear;
+
                 return (
                   <span
                     key={index}
-                    className={`day ${
-                      currentDate.getDate() === index - firstDayOfMonth + 1 &&
-                      currentDate.getMonth() === currentMonth &&
-                      currentDate.getFullYear() === currentYear
-                        ? "current-day"
-                        : ""
-                    } ${index % 7 === 0 ? "text-red-400" : ""}`}>
-                    {index - firstDayOfMonth + 1}
+                    className={`day ${isCurrentDay ? "current-day" : ""} ${
+                      isSelectedDay ? "selected-day" : ""
+                    } ${index % 7 === 0 ? "text-red-400" : ""}`}
+                    onClick={() => handleDayClick(day)}>
+                    {day}
                   </span>
                 );
               }
@@ -123,6 +155,7 @@ const Calendar = () => {
         <div className=" h-full py-12 pr-8 overflow-y-auto">
           <EventBox
             title="Potato"
+            type="personal"
             description="fjhw"
             startTimestamp="05:45"
             endTimestamp="08:63"
@@ -130,14 +163,25 @@ const Calendar = () => {
           />
           <EventBox
             title="Potato"
+            type="casual"
+            description="fjhw"
+            startTimestamp="05:45"
+            endTimestamp="08:63"
+            date="24 Oct 2024"
+          />
+          <EventBox
+            title="Potato"
+            type="work"
             description="fjhw"
             startTimestamp="05:45"
             endTimestamp="08:63"
             date="24 Oct 2024"
           />
         </div>
-        <div className="flex justify-end mr-8 mb-3">
-          <Button onClick={handleModalToggle}>Add Event</Button>
+        <div className="flex justify-end mr-10 mb-3">
+          {isAddEventValid() && (
+            <Button onClick={handleModalToggle}>Add Event</Button>
+          )}
         </div>
       </div>
     </div>
