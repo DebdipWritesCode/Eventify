@@ -5,10 +5,49 @@ import AddEvent from "./AddEvent";
 import EventBox from "./EventBox";
 
 const Calendar = () => {
+  const currentDate = new Date();
+
+  const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const months = [
+    "Janurary",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(currentDate.getMonth());
+  const [currentYear, setCurrentYear] = useState(currentDate.getFullYear());
+
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
 
   const handleModalToggle = () => {
     setIsModalOpen(!isModalOpen);
+  };
+
+  const previousMonth = () => {
+    setCurrentMonth((prev) => {
+      const newMonth = prev === 0 ? 11 : prev - 1;
+      setCurrentYear((year) => (newMonth === 11 ? year - 1 : year));
+      return newMonth;
+    });
+  };
+
+  const nextMonth = () => {
+    setCurrentMonth((prev) => {
+      const newMonth = prev === 11 ? 0 : prev + 1;
+      setCurrentYear((year) => (newMonth === 0 ? year + 1 : year));
+      return newMonth;
+    });
   };
 
   return (
@@ -26,64 +65,49 @@ const Calendar = () => {
         </div>
       )}
 
-      <div className="">
+      <div className="w-[600px]">
         <h1 className=" text-5xl font-bold text-white font-mono">EVENTIFY</h1>
-        <div className=" mt-3">
+        <div className=" mt-8">
           <div className="flex justify-between items-center">
             <div className=" flex text-gray-300 text-2xl font-semibold items-center h-full">
-              <h2>December, </h2>
-              <h2>2024</h2>
+              <h2>{months[currentMonth]},&nbsp;</h2>
+              <h2>{currentYear}</h2>
             </div>
             <div className="flex gap-2 items-center ">
-              <Button size="sm" className=" rounded-full bg-slate-900">
+              <Button
+                size="sm"
+                className=" rounded-full bg-slate-900"
+                onClick={previousMonth}>
                 <ChevronLeft color="#f9c13e" />
               </Button>
-              <Button size="sm" className=" rounded-full bg-slate-900">
+              <Button
+                size="sm"
+                className=" rounded-full bg-slate-900"
+                onClick={nextMonth}>
                 <ChevronRight color="#f9c13e" />
               </Button>
             </div>
           </div>
           <div className="days flex w-full my-6 text-slate-500">
-            <span className="day">Sun</span>
-            <span className="day">Mon</span>
-            <span className="day">Tue</span>
-            <span className="day">Wed</span>
-            <span className="day">Thu</span>
-            <span className="day">Fri</span>
-            <span className="day">Sat</span>
+            {weekdays.map((day) => (
+              <span key={day} className="day">
+                {day}
+              </span>
+            ))}
           </div>
           <div className="month-days flex flex-wrap text-slate-100">
-            <span>1</span>
-            <span>2</span>
-            <span>3</span>
-            <span>4</span>
-            <span>5</span>
-            <span>6</span>
-            <span className="current-day">7</span>
-            <span>8</span>
-            <span>9</span>
-            <span>10</span>
-            <span>11</span>
-            <span>12</span>
-            <span>13</span>
-            <span>14</span>
-            <span>15</span>
-            <span>16</span>
-            <span>17</span>
-            <span>18</span>
-            <span>19</span>
-            <span>20</span>
-            <span>21</span>
-            <span>22</span>
-            <span>23</span>
-            <span>24</span>
-            <span>25</span>
-            <span>26</span>
-            <span>27</span>
-            <span>28</span>
-            <span>29</span>
-            <span>30</span>
-            <span>31</span>
+            {Array.from({ length: firstDayOfMonth + daysInMonth }).map(
+              (_, index) => {
+                if (index < firstDayOfMonth) {
+                  return <span key={index} className="day"></span>;
+                }
+                return (
+                  <span key={index} className="day">
+                    {index - firstDayOfMonth + 1}
+                  </span>
+                );
+              }
+            )}
           </div>
         </div>
       </div>
