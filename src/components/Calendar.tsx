@@ -90,7 +90,7 @@ const Calendar = () => {
           </div>
           <div className="days flex w-full my-6 text-slate-500">
             {weekdays.map((day) => (
-              <span key={day} className="day">
+              <span key={day} className={`day ${day === "Sun" ? "text-red-500" : ""}`}>
                 {day}
               </span>
             ))}
@@ -102,7 +102,15 @@ const Calendar = () => {
                   return <span key={index} className="day"></span>;
                 }
                 return (
-                  <span key={index} className="day">
+                  <span
+                    key={index}
+                    className={`day ${
+                      currentDate.getDate() === index - firstDayOfMonth + 1 &&
+                      currentDate.getMonth() === currentMonth &&
+                      currentDate.getFullYear() === currentYear
+                        ? "current-day"
+                        : ""
+                    } ${index % 7 === 0 ? "text-red-400" : ""}`}>
                     {index - firstDayOfMonth + 1}
                   </span>
                 );
