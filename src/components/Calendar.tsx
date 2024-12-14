@@ -1,8 +1,24 @@
 import { Button } from "@/components/ui/button";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft, Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { saveAs } from "file-saver";
 import { useState, useEffect } from "react";
 import AddEvent from "./AddEvent";
 import EventBox from "./EventBox";
+
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const Calendar = () => {
   const currentDate = new Date();
@@ -23,6 +39,17 @@ const Calendar = () => {
     "December",
   ];
 
+  const downloadTypes = [
+    {
+      value: "json",
+      label: "JSON",
+    },
+    {
+      value: "csv",
+      label: "CSV",
+    },
+  ];
+
   interface Event {
     id: string;
     title: string;
@@ -40,6 +67,8 @@ const Calendar = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [event, setEvent] = useState<Event | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
+  const [downloadBoxOpen, setDownloadBoxOpen] = useState(false);
+  const [downloadBoxValue, setDownloadBoxValue] = useState("");
 
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
@@ -92,6 +121,47 @@ const Calendar = () => {
     setEvent(event);
     setIsEdit(true);
     setIsModalOpen(true);
+  };
+
+  const handleExport = (type: string, currentMonth: number, currentYear: number) => {
+    const storedEvents = JSON.parse(localStorage.getItem("events") || "[]");
+
+    const filteredEvents = storedEvents.filter((event: Event) => {
+      const eventDate = new Date(event.date);
+      return (
+        eventDate.getMonth() === currentMonth &&
+        eventDate.getFullYear() === currentYear
+      );
+    });
+
+    if (type === "json") {
+      const jsonBlob = new Blob([JSON.stringify(filteredEvents, null, 2)], {
+        type: "application/json",
+      });
+      saveAs(jsonBlob, "events.json");
+    } else if (type === "csv") {
+      const csvContent = [
+        "id,title,type,startTimestamp,endTimestamp,description,date",
+        ...filteredEvents.map((event: Event) =>
+          [
+            event.id,
+            event.title,
+            event.type,
+            event.startTimestamp,
+            event.endTimestamp,
+            event.description,
+            event.date,
+          ]
+            .map((field) => `"${field}"`)
+            .join(",")
+        ),
+      ].join("\n");
+  
+      const csvBlob = new Blob([csvContent], { type: "text/csv" });
+      saveAs(csvBlob, "events.csv");
+    } else {
+      console.error("Unsupported format");
+    }
   }
 
   useEffect(() => {
@@ -214,13 +284,63 @@ const Calendar = () => {
               />
             ))
           ) : (
-            <p className="text-gray-400 text-[27.5px] text-center w-full">No events to show</p>
+            <p className="text-gray-400 text-[27.5px] text-center w-full">
+              No events to show
+            </p>
           )}
         </div>
-        <div className="flex justify-end mr-10 mb-3">
+        <div className="flex gap-4 mr-10 mb-3 flex-row-reverse">
           {isAddEventValid() && (
             <Button onClick={handleAddEvent}>Add Event</Button>
           )}
+          <Popover open={downloadBoxOpen} onOpenChange={setDownloadBoxOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={downloadBoxOpen}
+                className="w-[200px] justify-between">
+                {downloadBoxValue
+                  ? downloadTypes.find((type) => type.value === downloadBoxValue)
+                      ?.label
+                  : "Export"}
+                <ChevronsUpDown className="opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0">
+              <Command>
+                <CommandInput placeholder="Search..." />
+                <CommandList>
+                  <CommandEmpty>No such format.</CommandEmpty>
+                  <CommandGroup>
+                    {downloadTypes.map((framework) => (
+                      <CommandItem
+                        key={framework.value}
+                        value={framework.value}
+                        onSelect={(currentValue) => {
+                          setDownloadBoxValue(currentValue === downloadBoxValue ? "" : currentValue);
+                          setDownloadBoxOpen(false);
+
+                          if (currentValue) {
+                            handleExport(currentValue, currentMonth, currentYear);
+                          }
+                        }}>
+                        {framework.label}
+                        <Check
+                          className={cn(
+                            "ml-auto",
+                            downloadBoxValue === framework.value
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
     </div>
