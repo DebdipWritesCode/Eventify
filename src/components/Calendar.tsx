@@ -109,6 +109,7 @@ const Calendar = () => {
             <AddEvent
               selectedDate={selectedDate}
               setIsModalOpen={setIsModalOpen}
+              setSelectedDate={setSelectedDate}
             />
           </div>
         </div>
@@ -194,6 +195,7 @@ const Calendar = () => {
                   month: "short",
                   year: "numeric",
                 })}
+                setEvents={setEvents}
               />
             ))
           ) : (

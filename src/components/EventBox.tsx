@@ -8,6 +8,7 @@ interface EventBoxProps {
   endTimestamp: string;
   description: string;
   date: string;
+  setEvents?: React.Dispatch<React.SetStateAction<EventBoxProps[]>>;
 }
 
 const EventBox: React.FC<EventBoxProps> = ({
@@ -17,6 +18,7 @@ const EventBox: React.FC<EventBoxProps> = ({
   endTimestamp,
   description,
   date,
+  setEvents,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -31,7 +33,22 @@ const EventBox: React.FC<EventBoxProps> = ({
 
   const handleDelete = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    console.log("Delete clicked");
+
+    const storedEvents = JSON.parse(localStorage.getItem("events") || "[]");
+    const updatedEvents = storedEvents.filter(
+      (e: EventBoxProps) =>
+        e.startTimestamp !== startTimestamp || e.endTimestamp !== endTimestamp
+    );
+
+    localStorage.setItem("events", JSON.stringify(updatedEvents));
+
+    const updatedFilteredEvents = updatedEvents.filter((e: EventBoxProps) => {
+      const eventDate = new Date(e.date).toISOString().split("T")[0];
+      const targetDate = new Date(date).toLocaleDateString("en-CA");
+      return eventDate === targetDate;
+    });
+
+    setEvents && setEvents(updatedFilteredEvents);
   };
 
   // Determine classes based on the type
@@ -48,8 +65,7 @@ const EventBox: React.FC<EventBoxProps> = ({
       className={`w-full ${currentTypeClass} rounded-lg cursor-pointer mb-4 shadow-md overflow-hidden transition-all ${
         isExpanded ? "h-auto" : "h-20"
       }`}
-      onClick={handleToggle}
-    >
+      onClick={handleToggle}>
       <div className="py-4 flex gap-6 items-center px-4">
         <div className="text-white text-center">
           <p className="text-sm font-semibold">{date}</p>
@@ -68,14 +84,12 @@ const EventBox: React.FC<EventBoxProps> = ({
           <div className="flex gap-2">
             <button
               className="text-white hover:text-yellow-300"
-              onClick={handleEdit}
-            >
+              onClick={handleEdit}>
               <Edit2 size={18} />
             </button>
             <button
               className="text-white hover:text-red-500"
-              onClick={handleDelete}
-            >
+              onClick={handleDelete}>
               <Trash2 size={18} />
             </button>
           </div>

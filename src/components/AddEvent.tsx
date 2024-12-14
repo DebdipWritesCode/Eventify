@@ -94,11 +94,13 @@ const formSchema = z
 interface AddEventProps {
   selectedDate: Date;
   setIsModalOpen: (isOpen: boolean) => void;
+  setSelectedDate: (date: Date) => void;
 }
 
 const AddEvent: React.FC<AddEventProps> = ({
   selectedDate,
   setIsModalOpen,
+  setSelectedDate,
 }) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -126,6 +128,7 @@ const AddEvent: React.FC<AddEventProps> = ({
     const updatedEvents = [...existingEvents, newEvent];
 
     localStorage.setItem("events", JSON.stringify(updatedEvents));
+    setSelectedDate(data.date);
     setIsModalOpen(false);
 
     console.log("Event added", newEvent);
