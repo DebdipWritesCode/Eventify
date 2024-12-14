@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Edit2, Trash2 } from "lucide-react";
 
 interface EventBoxProps {
+  id: string;
   title: string;
   type: "personal" | "work" | "casual";
   startTimestamp: string;
@@ -13,6 +14,7 @@ interface EventBoxProps {
 }
 
 const EventBox: React.FC<EventBoxProps> = ({
+  id,
   title,
   type,
   startTimestamp,
@@ -33,6 +35,7 @@ const EventBox: React.FC<EventBoxProps> = ({
 
     onEdit &&
       onEdit({
+        id,
         title,
         type,
         startTimestamp,

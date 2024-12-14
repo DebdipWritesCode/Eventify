@@ -24,6 +24,7 @@ const Calendar = () => {
   ];
 
   interface Event {
+    id: string;
     title: string;
     type: "personal" | "work" | "casual";
     description: string;
@@ -197,6 +198,7 @@ const Calendar = () => {
             events.map((event, index) => (
               <EventBox
                 key={index}
+                id={event.id}
                 title={event.title}
                 type={event.type}
                 description={event.description}

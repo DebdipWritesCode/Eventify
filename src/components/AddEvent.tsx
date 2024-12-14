@@ -1,4 +1,5 @@
 import React from "react";
+import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,6 +16,8 @@ import { Button } from "@/components/ui/button";
 
 const formSchema = z
   .object({
+    id: z.string().optional(),
+
     title: z
       .string()
       .min(2, {
@@ -65,6 +68,11 @@ const formSchema = z
     const existingEvents = JSON.parse(localStorage.getItem("events") || "[]");
 
     const isOverlapping = existingEvents.some((event: any) => {
+      // Skip the current event being edited (assumes events have a unique ID)
+      if (event.id === data.id) {
+        return false;
+      }
+
       const eventDate = new Date(event.date).toISOString().split("T")[0];
       const formDate = data.date.toISOString().split("T")[0];
 
@@ -92,6 +100,7 @@ const formSchema = z
   });
 
 interface EventProp {
+  id: string;
   title: string;
   type: "personal" | "work" | "casual";
   startTimestamp: string;
@@ -117,27 +126,31 @@ const AddEvent: React.FC<AddEventProps> = ({
 }) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: isEdit && event
-      ? {
-          title: event.title,
-          type: event.type,
-          startTimestamp: event.startTimestamp,
-          endTimestamp: event.endTimestamp,
-          description: event.description,
-          date: new Date(event.date),
-        }
-      : {
-          title: "",
-          type: "personal",
-          startTimestamp: "",
-          endTimestamp: "",
-          description: "",
-          date: selectedDate,
-        },
-  });  
+    defaultValues:
+      isEdit && event
+        ? {
+            id: event.id,
+            title: event.title,
+            type: event.type,
+            startTimestamp: event.startTimestamp,
+            endTimestamp: event.endTimestamp,
+            description: event.description,
+            date: new Date(event.date),
+          }
+        : {
+            id: uuidv4(),
+            title: "",
+            type: "personal",
+            startTimestamp: "",
+            endTimestamp: "",
+            description: "",
+            date: selectedDate,
+          },
+  });
 
   function onSubmit(data: z.infer<typeof formSchema>) {
     const newEvent = {
+      id: data.id,
       title: data.title,
       type: data.type,
       startTimestamp: data.startTimestamp,
@@ -145,14 +158,15 @@ const AddEvent: React.FC<AddEventProps> = ({
       description: data.description,
       date: data.date.toISOString(),
     };
-  
+
     const existingEvents = JSON.parse(localStorage.getItem("events") || "[]");
-  
+
     if (isEdit) {
       const updatedEvents = existingEvents.map((e: EventProp) =>
         e.startTimestamp === event?.startTimestamp &&
         e.endTimestamp === event?.endTimestamp &&
-        new Date(e.date).toISOString().split("T")[0] === new Date(event.date).toISOString().split("T")[0]
+        new Date(e.date).toISOString().split("T")[0] ===
+          new Date(event.date).toISOString().split("T")[0]
           ? newEvent
           : e
       );
@@ -161,12 +175,12 @@ const AddEvent: React.FC<AddEventProps> = ({
       const updatedEvents = [...existingEvents, newEvent];
       localStorage.setItem("events", JSON.stringify(updatedEvents));
     }
-  
+
     setSelectedDate(data.date);
     setIsModalOpen(false);
-  
+
     console.log(isEdit ? "Event updated" : "Event added", newEvent);
-  }  
+  }
 
   const typeOptions = [
     { value: "personal", label: "Personal", color: "bg-blue-500" },
