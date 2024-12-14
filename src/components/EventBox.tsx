@@ -9,6 +9,7 @@ interface EventBoxProps {
   description: string;
   date: string;
   setEvents?: React.Dispatch<React.SetStateAction<EventBoxProps[]>>;
+  onEdit?: (event: EventBoxProps) => void;
 }
 
 const EventBox: React.FC<EventBoxProps> = ({
@@ -19,6 +20,7 @@ const EventBox: React.FC<EventBoxProps> = ({
   description,
   date,
   setEvents,
+  onEdit,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -28,7 +30,16 @@ const EventBox: React.FC<EventBoxProps> = ({
 
   const handleEdit = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    console.log("Edit clicked");
+
+    onEdit &&
+      onEdit({
+        title,
+        type,
+        startTimestamp,
+        endTimestamp,
+        description,
+        date,
+      });
   };
 
   const handleDelete = (event: React.MouseEvent<HTMLButtonElement>) => {

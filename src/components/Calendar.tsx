@@ -36,13 +36,17 @@ const Calendar = () => {
   const [currentMonth, setCurrentMonth] = useState(currentDate.getMonth());
   const [currentYear, setCurrentYear] = useState(currentDate.getFullYear());
   const [selectedDate, setSelectedDate] = useState(currentDate);
+  const [isEdit, setIsEdit] = useState(false);
+  const [event, setEvent] = useState<Event | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
 
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
 
-  const handleModalToggle = () => {
-    setIsModalOpen(!isModalOpen);
+  const handleAddEvent = () => {
+    setIsEdit(false);
+    setEvent(null);
+    setIsModalOpen(true);
   };
 
   const previousMonth = () => {
@@ -83,6 +87,12 @@ const Calendar = () => {
     return false;
   };
 
+  const handleEventEdit = (event: Event) => {
+    setEvent(event);
+    setIsEdit(true);
+    setIsModalOpen(true);
+  }
+
   useEffect(() => {
     const storedEvents = JSON.parse(localStorage.getItem("events") || "[]");
 
@@ -102,7 +112,7 @@ const Calendar = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="modal-content w-[400px] bg-white p-6 rounded-lg shadow-lg animate-slideIn relative">
             <button
-              onClick={handleModalToggle}
+              onClick={() => setIsModalOpen(false)}
               className="absolute top-2 right-2 text-gray-600 hover:text-gray-800">
               ✖
             </button>
@@ -110,6 +120,8 @@ const Calendar = () => {
               selectedDate={selectedDate}
               setIsModalOpen={setIsModalOpen}
               setSelectedDate={setSelectedDate}
+              isEdit={isEdit}
+              event={event}
             />
           </div>
         </div>
@@ -196,6 +208,7 @@ const Calendar = () => {
                   year: "numeric",
                 })}
                 setEvents={setEvents}
+                onEdit={() => handleEventEdit(event)}
               />
             ))
           ) : (
@@ -204,7 +217,7 @@ const Calendar = () => {
         </div>
         <div className="flex justify-end mr-10 mb-3">
           {isAddEventValid() && (
-            <Button onClick={handleModalToggle}>Add Event</Button>
+            <Button onClick={handleAddEvent}>Add Event</Button>
           )}
         </div>
       </div>

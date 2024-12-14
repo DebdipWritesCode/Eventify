@@ -91,28 +91,50 @@ const formSchema = z
     }
   });
 
+interface EventProp {
+  title: string;
+  type: "personal" | "work" | "casual";
+  startTimestamp: string;
+  endTimestamp: string;
+  description: string;
+  date: string;
+}
+
 interface AddEventProps {
   selectedDate: Date;
   setIsModalOpen: (isOpen: boolean) => void;
   setSelectedDate: (date: Date) => void;
+  event?: EventProp | null;
+  isEdit?: boolean;
 }
 
 const AddEvent: React.FC<AddEventProps> = ({
   selectedDate,
   setIsModalOpen,
   setSelectedDate,
+  event,
+  isEdit,
 }) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: "",
-      type: "personal",
-      startTimestamp: "",
-      endTimestamp: "",
-      description: "",
-      date: selectedDate,
-    },
-  });
+    defaultValues: isEdit && event
+      ? {
+          title: event.title,
+          type: event.type,
+          startTimestamp: event.startTimestamp,
+          endTimestamp: event.endTimestamp,
+          description: event.description,
+          date: new Date(event.date),
+        }
+      : {
+          title: "",
+          type: "personal",
+          startTimestamp: "",
+          endTimestamp: "",
+          description: "",
+          date: selectedDate,
+        },
+  });  
 
   function onSubmit(data: z.infer<typeof formSchema>) {
     const newEvent = {
@@ -123,16 +145,28 @@ const AddEvent: React.FC<AddEventProps> = ({
       description: data.description,
       date: data.date.toISOString(),
     };
-
+  
     const existingEvents = JSON.parse(localStorage.getItem("events") || "[]");
-    const updatedEvents = [...existingEvents, newEvent];
-
-    localStorage.setItem("events", JSON.stringify(updatedEvents));
+  
+    if (isEdit) {
+      const updatedEvents = existingEvents.map((e: EventProp) =>
+        e.startTimestamp === event?.startTimestamp &&
+        e.endTimestamp === event?.endTimestamp &&
+        new Date(e.date).toISOString().split("T")[0] === new Date(event.date).toISOString().split("T")[0]
+          ? newEvent
+          : e
+      );
+      localStorage.setItem("events", JSON.stringify(updatedEvents));
+    } else {
+      const updatedEvents = [...existingEvents, newEvent];
+      localStorage.setItem("events", JSON.stringify(updatedEvents));
+    }
+  
     setSelectedDate(data.date);
     setIsModalOpen(false);
-
-    console.log("Event added", newEvent);
-  }
+  
+    console.log(isEdit ? "Event updated" : "Event added", newEvent);
+  }  
 
   const typeOptions = [
     { value: "personal", label: "Personal", color: "bg-blue-500" },
