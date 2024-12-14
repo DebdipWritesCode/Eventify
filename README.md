@@ -9,6 +9,7 @@ Eventify is a feature-rich calendar events app that allows you to efficiently ma
 - **Event Color Coding**: Categorize events as Personal, Work, or Casual using different colors.
 - **Local Storage**: All your events are saved in the browser's local storage, ensuring data persistence.
 - **Month Navigation**: Seamlessly switch between months and add events to today or any future date.
+- **Export Events**: Export your events in CSV or JSON format for easy sharing and backup.
 
 ## Live Demo
 
